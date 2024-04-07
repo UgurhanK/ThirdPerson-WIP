@@ -1,1 +1,2 @@
-It is a thirdperson plugin that can be used on the CS2 game. It is still under development.
+# CS2-ThirdPerson
+WIP ThirdPerson plugin for CS2 expect bugs.
