@@ -16,7 +16,7 @@ namespace ThirdPerson
     public class ThirdPerson : BasePlugin, IPluginConfig<Config>
     {
         public override string ModuleName => "ThirdPerson";
-        public override string ModuleVersion => "0.0.2";
+        public override string ModuleVersion => "0.0.3";
         public override string ModuleAuthor => "BoinK & UgurhanK";
         public override string ModuleDescription => "Basic Third Person";
 
