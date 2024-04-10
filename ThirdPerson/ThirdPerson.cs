@@ -44,13 +44,13 @@ namespace ThirdPerson
             foreach (var player in thirdPersonPool.Keys)
             {
                 thirdPersonPool[player].UpdateCamera(player);
-                if(player.PlayerPawn.Value!.WeaponServices!.MyWeapons.Count > 0) player.RemoveWeapons();
+                if(player.PlayerPawn.Value!.WeaponServices!.MyWeapons.Count > 0 && Config.StripOnUse) player.RemoveWeapons();
             }
 
             foreach (var player in smoothThirdPersonPool.Keys)
             {
                 smoothThirdPersonPool[player].UpdateCameraSmooth(player);
-                if (player.PlayerPawn.Value!.WeaponServices!.MyWeapons.Count > 0) player.RemoveWeapons();
+                if (player.PlayerPawn.Value!.WeaponServices!.MyWeapons.Count > 0 && Config.StripOnUse) player.RemoveWeapons();
             }
         }
 
