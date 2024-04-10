@@ -7,7 +7,9 @@ using CounterStrikeSharp.API.Modules.Entities;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Utils;
 using System.Drawing;
+using VectorSystem = System.Numerics;
 using System.Text.Json.Serialization;
+using System.Diagnostics.SymbolStore;
 
 namespace ThirdPerson 
 {
@@ -19,16 +21,19 @@ namespace ThirdPerson
         public override string ModuleDescription => "Basic Third Person";
 
         public Config Config { get; set; } = null!;
-        public static Config cfg;
+        public static Config cfg = null!;
         public void OnConfigParsed(Config config) { Config = config; cfg = config; }
 
         public static Dictionary<CCSPlayerController, CDynamicProp> thirdPersonPool = new Dictionary<CCSPlayerController, CDynamicProp>();
         public static Dictionary<CCSPlayerController, CPhysicsPropMultiplayer> smoothThirdPersonPool = new Dictionary<CCSPlayerController, CPhysicsPropMultiplayer>();
 
+        public static Dictionary<CCSPlayerController, WeaponList> weapons = new Dictionary<CCSPlayerController, WeaponList>();
+
         public override void Load(bool hotReload)
         {
             RegisterListener<Listeners.OnTick>(OnGameFrame);
             RegisterEventHandler<EventRoundStart>(OnRoundStart);
+            RegisterEventHandler<EventPlayerHurt>(OnPlayerHurt);
 
             AddCommand("css_tp", "Allows to use thirdperson", OnTPCommand);
             AddCommand("css_thirdperson", "Allows to use thirdperson", OnTPCommand);
@@ -39,11 +44,13 @@ namespace ThirdPerson
             foreach (var player in thirdPersonPool.Keys)
             {
                 thirdPersonPool[player].UpdateCamera(player);
+                if(player.PlayerPawn.Value!.WeaponServices!.MyWeapons.Count > 0) player.RemoveWeapons();
             }
 
             foreach (var player in smoothThirdPersonPool.Keys)
             {
                 smoothThirdPersonPool[player].UpdateCameraSmooth(player);
+                if (player.PlayerPawn.Value!.WeaponServices!.MyWeapons.Count > 0) player.RemoveWeapons();
             }
         }
 
@@ -51,6 +58,25 @@ namespace ThirdPerson
         {
             thirdPersonPool.Clear();
             smoothThirdPersonPool.Clear();
+            return HookResult.Continue;
+        }
+
+        private HookResult OnPlayerHurt(EventPlayerHurt @event, GameEventInfo info)
+        {
+            //Victim
+            var player = @event.Userid;
+            //Attacker If He In Thirdperson
+            var attacker = @event.Attacker;
+
+            var isInfront = @event.Attacker.IsInfrontOfPlayer(@event.Userid);
+            attacker.PrintToCenter(isInfront.ToString());
+
+            if (@event.Attacker.IsInfrontOfPlayer(player))
+            {
+                if (!thirdPersonPool.Keys.Contains(attacker) && !smoothThirdPersonPool.Keys.Contains(attacker)) return HookResult.Continue;
+                player.Health = @event.Health + @event.DmgHealth;
+                player.PlayerPawn.Value!.Health = @event.Health + @event.DmgHealth;
+            }
             return HookResult.Continue;
         }
 
@@ -84,14 +110,11 @@ namespace ThirdPerson
 
                 _cameraProp.DispatchSpawn();
                 _cameraProp.SetColor(Color.FromArgb(0, 255, 255, 255));
-
                 _cameraProp.Teleport(caller.CalculatePositionInFront(-110, 90), caller.PlayerPawn.Value!.V_angle, new Vector());
 
                 caller.PlayerPawn!.Value!.CameraServices!.ViewEntity.Raw = _cameraProp.EntityHandle.Raw;
                 Utilities.SetStateChanged(caller.PlayerPawn!.Value!, "CBasePlayerPawn", "m_pCameraServices");
-
                 caller.PrintToChat(ReplaceColorTags(Config.Prefix + Config.OnActivated));
-
                 thirdPersonPool.Add(caller, _cameraProp);
 
                 AddTimer(0.5f, () =>
@@ -99,6 +122,21 @@ namespace ThirdPerson
                     _cameraProp.Teleport(caller.CalculatePositionInFront(-110, 90), caller.PlayerPawn.Value.V_angle, new Vector());
                 });
 
+                if (Config.StripOnUse)
+                {
+                    if (weapons.ContainsKey(caller)) weapons.Remove(caller);
+
+                    var WeaponList = new WeaponList();
+
+                    foreach (var weapon in caller.PlayerPawn.Value!.WeaponServices!.MyWeapons)
+                    {
+                        if (weapons.ContainsKey(caller) && weapons[caller].weapons.Contains(weapon.Value!.DesignerName)) continue;
+                        WeaponList.weapons.Add(weapon.Value!.DesignerName!);
+                    }
+
+                    weapons.Add(caller, WeaponList);
+                    caller.RemoveWeapons();
+                }
             }
             else
             {
@@ -107,6 +145,15 @@ namespace ThirdPerson
                 if (thirdPersonPool[caller] != null && thirdPersonPool[caller].IsValid) thirdPersonPool[caller].Remove();
                 caller.PrintToChat(ReplaceColorTags(Config.Prefix + Config.OnDeactivated));
                 thirdPersonPool.Remove(caller);
+
+                if (Config.StripOnUse)
+                {
+                    foreach (var weapon in weapons[caller].weapons)
+                    {
+                        caller.GiveNamedItem(weapon);
+                    }
+                }
+                    
             }
         }
 
@@ -136,6 +183,22 @@ namespace ThirdPerson
                 smoothThirdPersonPool.Add(caller, _cameraProp);
 
                 caller.PrintToChat(ReplaceColorTags(Config.Prefix + Config.OnActivated));
+
+                if (Config.StripOnUse)
+                {
+                    if (weapons.ContainsKey(caller)) weapons.Remove(caller);
+
+                    var WeaponList = new WeaponList();
+
+                    foreach (var weapon in caller.PlayerPawn.Value!.WeaponServices!.MyWeapons)
+                    {
+                        if (weapons.ContainsKey(caller) && weapons[caller].weapons.Contains(weapon.Value!.DesignerName)) continue;
+                        WeaponList.weapons.Add(weapon.Value!.DesignerName!);
+                    }
+
+                    weapons.Add(caller, WeaponList);
+                    caller.RemoveWeapons();
+                }
             }
             else
             {
@@ -144,6 +207,14 @@ namespace ThirdPerson
                 if (smoothThirdPersonPool[caller] != null && smoothThirdPersonPool[caller].IsValid) smoothThirdPersonPool[caller].Remove();
                 caller.PrintToChat(ReplaceColorTags(Config.Prefix + Config.OnDeactivated));
                 smoothThirdPersonPool.Remove(caller);
+
+                if (Config.StripOnUse)
+                {
+                    foreach (var weapon in weapons[caller].weapons)
+                    {
+                        caller.GiveNamedItem(weapon);
+                    }
+                }
             }
         }
 
@@ -167,6 +238,11 @@ namespace ThirdPerson
         }
     }
 
+    public class WeaponList
+    {
+        public List<string> weapons = new List<string>();
+    }
+
     public class Config : BasePluginConfig
     {
         [JsonPropertyName("OnActivated")] public string OnActivated { get; set; } = "Third Person Activated";
@@ -177,5 +253,6 @@ namespace ThirdPerson
         [JsonPropertyName("OnlyAdminFlag")] public string Flag { get; set; } = "@css/slay";
         [JsonPropertyName("UseSmoothCam")] public bool UseSmooth { get; set; } = false;
         [JsonPropertyName("SmoothCamDuration")] public float SmoothDuration { get; set; } = 0.01f;
+        [JsonPropertyName("StripOnUse")] public bool StripOnUse { get; set; } = false;
     }
 }

@@ -6,6 +6,7 @@ using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Entities;
 using CounterStrikeSharp.API.Modules.Utils;
 using System.Drawing;
+using VectorSystem = System.Numerics;
 
 namespace ThirdPerson;
 
@@ -92,5 +93,52 @@ public static class EntityUtilities
         };
 
         return positionInFront;
+    }
+
+    public static bool IsInfrontOfPlayer(this CCSPlayerController player1, CCSPlayerController player2)
+    {
+        var player1Pawn = player1.PlayerPawn.Value;
+        var player2Pawn = player2.PlayerPawn.Value;
+        var yawAngleRadians = (float)(player1Pawn!.EyeAngles.Y * Math.PI / 180.0);
+
+        // Calculate the direction vector of player1 based on yaw angle
+        Vector player1Direction = new(
+            MathF.Cos(yawAngleRadians),
+            MathF.Sin(yawAngleRadians),
+            0
+        );
+
+        // Vector from player1 to player2
+        Vector player1ToPlayer2 = player2Pawn!.AbsOrigin! - player1Pawn.AbsOrigin!;
+
+        // Calculate dot product to determine if player2 is behind player1
+        float dotProduct = player1ToPlayer2.Dot(player1Direction);
+
+        // If the dot product is negative, player2 is behind player1
+        return dotProduct < 0;
+    }
+
+    public static float Dot(this Vector vector1, Vector vector2)
+    {
+        return vector1.X * vector2.X + vector1.Y * vector2.Y + vector1.Z * vector2.Z;
+    }
+
+    static public void Health(this CCSPlayerController player, int health)
+    {
+        if (player.PlayerPawn == null || player.PlayerPawn.Value == null)
+        {
+            return;
+        }
+
+        player.Health = health;
+        player.PlayerPawn.Value.Health = health;
+
+        if (health > 100)
+        {
+            player.MaxHealth = health;
+            player.PlayerPawn.Value.MaxHealth = health;
+        }
+
+        Utilities.SetStateChanged(player.PlayerPawn.Value, "CBaseEntity", "m_iHealth");
     }
 }
