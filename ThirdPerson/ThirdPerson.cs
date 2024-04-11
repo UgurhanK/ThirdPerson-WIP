@@ -16,7 +16,7 @@ namespace ThirdPerson
     public class ThirdPerson : BasePlugin, IPluginConfig<Config>
     {
         public override string ModuleName => "ThirdPerson";
-        public override string ModuleVersion => "0.0.3";
+        public override string ModuleVersion => "0.0.4";
         public override string ModuleAuthor => "BoinK & UgurhanK";
         public override string ModuleDescription => "Basic Third Person";
 
@@ -44,13 +44,11 @@ namespace ThirdPerson
             foreach (var player in thirdPersonPool.Keys)
             {
                 thirdPersonPool[player].UpdateCamera(player);
-                if(player.PlayerPawn.Value!.WeaponServices!.MyWeapons.Count > 0 && Config.StripOnUse) player.RemoveWeapons();
             }
 
             foreach (var player in smoothThirdPersonPool.Keys)
             {
                 smoothThirdPersonPool[player].UpdateCameraSmooth(player);
-                if (player.PlayerPawn.Value!.WeaponServices!.MyWeapons.Count > 0 && Config.StripOnUse) player.RemoveWeapons();
             }
         }
 
@@ -124,6 +122,8 @@ namespace ThirdPerson
 
                 if (Config.StripOnUse)
                 {
+                    caller.PlayerPawn.Value.WeaponServices!.PreventWeaponPickup = true;
+
                     if (weapons.ContainsKey(caller)) weapons.Remove(caller);
 
                     var WeaponList = new WeaponList();
@@ -145,6 +145,8 @@ namespace ThirdPerson
                 if (thirdPersonPool[caller] != null && thirdPersonPool[caller].IsValid) thirdPersonPool[caller].Remove();
                 caller.PrintToChat(ReplaceColorTags(Config.Prefix + Config.OnDeactivated));
                 thirdPersonPool.Remove(caller);
+
+                caller.PlayerPawn.Value.WeaponServices!.PreventWeaponPickup = false;
 
                 if (Config.StripOnUse)
                 {
@@ -186,6 +188,8 @@ namespace ThirdPerson
 
                 if (Config.StripOnUse)
                 {
+                    caller.PlayerPawn.Value.WeaponServices!.PreventWeaponPickup = true;
+
                     if (weapons.ContainsKey(caller)) weapons.Remove(caller);
 
                     var WeaponList = new WeaponList();
@@ -207,6 +211,8 @@ namespace ThirdPerson
                 if (smoothThirdPersonPool[caller] != null && smoothThirdPersonPool[caller].IsValid) smoothThirdPersonPool[caller].Remove();
                 caller.PrintToChat(ReplaceColorTags(Config.Prefix + Config.OnDeactivated));
                 smoothThirdPersonPool.Remove(caller);
+
+                caller.PlayerPawn.Value.WeaponServices!.PreventWeaponPickup = false;
 
                 if (Config.StripOnUse)
                 {
