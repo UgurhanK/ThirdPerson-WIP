@@ -33,7 +33,7 @@ namespace ThirdPerson
         {
             RegisterListener<Listeners.OnTick>(OnGameFrame);
             RegisterEventHandler<EventRoundStart>(OnRoundStart);
-            RegisterEventHandler<EventPlayerHurt>(OnPlayerHurt);
+            RegisterEventHandler<EventPlayerHurt>(OnPlayerHurt, HookMode.Pre);
 
             AddCommand("css_tp", "Allows to use thirdperson", OnTPCommand);
             AddCommand("css_thirdperson", "Allows to use thirdperson", OnTPCommand);
@@ -67,7 +67,7 @@ namespace ThirdPerson
             //Attacker
             var attacker = @event.Attacker;
 
-            if (thirdPersonPool.ContainsKey(attacker) || !smoothThirdPersonPool.ContainsKey(attacker))
+            if (thirdPersonPool.ContainsKey(attacker) || smoothThirdPersonPool.ContainsKey(attacker))
             {
                 var isInfront = attacker.IsInfrontOfPlayer(victim);
                 if (isInfront)
