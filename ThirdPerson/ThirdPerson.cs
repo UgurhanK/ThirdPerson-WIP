@@ -61,20 +61,22 @@ namespace ThirdPerson
 
         private HookResult OnPlayerHurt(EventPlayerHurt @event, GameEventInfo info)
         {
-            //Victim
-            var player = @event.Userid;
-            //Attacker If He In Thirdperson
+            //Victim  
+            var victim = @event.Userid;
+
+            //Attacker
             var attacker = @event.Attacker;
 
-            var isInfront = @event.Attacker.IsInfrontOfPlayer(@event.Userid);
-            attacker.PrintToCenter(isInfront.ToString());
-
-            if (@event.Attacker.IsInfrontOfPlayer(player))
+            if (thirdPersonPool.ContainsKey(attacker) || !smoothThirdPersonPool.ContainsKey(attacker))
             {
-                if (!thirdPersonPool.Keys.Contains(attacker) && !smoothThirdPersonPool.Keys.Contains(attacker)) return HookResult.Continue;
-                player.Health = @event.Health + @event.DmgHealth;
-                player.PlayerPawn.Value!.Health = @event.Health + @event.DmgHealth;
+                var isInfront = attacker.IsInfrontOfPlayer(victim);
+                if (isInfront)
+                {
+                    victim.PlayerPawn.Value!.Health += @event.DmgHealth;
+                    victim.PlayerPawn.Value!.ArmorValue += @event.DmgArmor;
+                }
             }
+
             return HookResult.Continue;
         }
 
