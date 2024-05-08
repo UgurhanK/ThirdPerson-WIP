@@ -97,6 +97,8 @@ public static class EntityUtilities
 
     public static bool IsInfrontOfPlayer(this CCSPlayerController player1, CCSPlayerController player2)
     {
+        if (!player1.IsValid || !player2.IsValid || !player1.PlayerPawn.IsValid || !player2.PlayerPawn.IsValid) return false;
+
         var player1Pawn = player1.PlayerPawn.Value;
         var player2Pawn = player2.PlayerPawn.Value;
         var yawAngleRadians = (float)(player1Pawn!.EyeAngles.Y * Math.PI / 180.0);

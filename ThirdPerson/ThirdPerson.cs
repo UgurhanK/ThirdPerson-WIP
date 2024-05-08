@@ -66,14 +66,17 @@ namespace ThirdPerson
             //Attacker If He In Thirdperson
             var attacker = @event.Attacker;
 
-            var isInfront = @event.Attacker.IsInfrontOfPlayer(@event.Userid);
+            if (attacker == null) return HookResult.Continue;
+            if (@event.Userid == null) return HookResult.Continue;
+
+            var isInfront = @event.Attacker!.IsInfrontOfPlayer(@event.Userid);
             attacker.PrintToCenter(isInfront.ToString());
 
-            if (@event.Attacker.IsInfrontOfPlayer(player))
+            if (@event.Attacker!.IsInfrontOfPlayer(player!))
             {
                 if (!thirdPersonPool.Keys.Contains(attacker) && !smoothThirdPersonPool.Keys.Contains(attacker)) return HookResult.Continue;
-                player.Health = @event.Health + @event.DmgHealth;
-                player.PlayerPawn.Value!.Health = @event.Health + @event.DmgHealth;
+                player!.Health = @event.Health + @event.DmgHealth;
+                player!.PlayerPawn.Value!.Health = @event.Health + @event.DmgHealth;
             }
             return HookResult.Continue;
         }
@@ -253,7 +256,7 @@ namespace ThirdPerson
     {
         [JsonPropertyName("OnActivated")] public string OnActivated { get; set; } = "Third Person Activated";
         [JsonPropertyName("OnDeactivated")] public string OnDeactivated { get; set; } = "Third Person Deactivated";
-        [JsonPropertyName("NoPermission")] public string NoPermission { get; set; } = "You dont have to access this command.";
+        [JsonPropertyName("NoPermission")] public string NoPermission { get; set; } = "You dont have permission to access this command.";
         [JsonPropertyName("Prefix")] public string Prefix { get; set; } = " [ {DARKRED}Third Person {DEFAULT}] ";
         [JsonPropertyName("UseOnlyAdmin")] public bool UseOnlyAdmin { get; set; } = false;
         [JsonPropertyName("OnlyAdminFlag")] public string Flag { get; set; } = "@css/slay";
