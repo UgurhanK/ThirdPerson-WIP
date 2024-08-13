@@ -33,7 +33,7 @@ namespace ThirdPerson
         {
             RegisterListener<Listeners.OnTick>(OnGameFrame);
             RegisterEventHandler<EventRoundStart>(OnRoundStart);
-            RegisterEventHandler<EventPlayerHurt>(OnPlayerHurt);
+            RegisterEventHandler<EventPlayerHurt>(OnPlayerHurt, HookMode.Pre);
 
             AddCommand("css_tp", "Allows to use thirdperson", OnTPCommand);
             AddCommand("css_thirdperson", "Allows to use thirdperson", OnTPCommand);
@@ -61,23 +61,22 @@ namespace ThirdPerson
 
         private HookResult OnPlayerHurt(EventPlayerHurt @event, GameEventInfo info)
         {
-            //Victim
-            var player = @event.Userid;
-            //Attacker If He In Thirdperson
+            //Victim  
+            var victim = @event.Userid;
+
+            //Attacker
             var attacker = @event.Attacker;
 
-            if (attacker == null) return HookResult.Continue;
-            if (@event.Userid == null) return HookResult.Continue;
-
-            var isInfront = @event.Attacker!.IsInfrontOfPlayer(@event.Userid);
-            attacker.PrintToCenter(isInfront.ToString());
-
-            if (@event.Attacker!.IsInfrontOfPlayer(player!))
+            if (thirdPersonPool.ContainsKey(attacker) || smoothThirdPersonPool.ContainsKey(attacker))
             {
-                if (!thirdPersonPool.Keys.Contains(attacker) && !smoothThirdPersonPool.Keys.Contains(attacker)) return HookResult.Continue;
-                player!.Health = @event.Health + @event.DmgHealth;
-                player!.PlayerPawn.Value!.Health = @event.Health + @event.DmgHealth;
+                var isInfront = attacker.IsInfrontOfPlayer(victim);
+                if (isInfront)
+                {
+                    victim.PlayerPawn.Value!.Health += @event.DmgHealth;
+                    victim.PlayerPawn.Value!.ArmorValue += @event.DmgArmor;
+                }
             }
+
             return HookResult.Continue;
         }
 
@@ -256,7 +255,7 @@ namespace ThirdPerson
     {
         [JsonPropertyName("OnActivated")] public string OnActivated { get; set; } = "Third Person Activated";
         [JsonPropertyName("OnDeactivated")] public string OnDeactivated { get; set; } = "Third Person Deactivated";
-        [JsonPropertyName("NoPermission")] public string NoPermission { get; set; } = "You dont have permission to access this command.";
+        [JsonPropertyName("NoPermission")] public string NoPermission { get; set; } = "You dont have to access this command.";
         [JsonPropertyName("Prefix")] public string Prefix { get; set; } = " [ {DARKRED}Third Person {DEFAULT}] ";
         [JsonPropertyName("UseOnlyAdmin")] public bool UseOnlyAdmin { get; set; } = false;
         [JsonPropertyName("OnlyAdminFlag")] public string Flag { get; set; } = "@css/slay";
