@@ -11,7 +11,7 @@ using VectorSystem = System.Numerics;
 using System.Text.Json.Serialization;
 using System.Diagnostics.SymbolStore;
 
-namespace ThirdPerson 
+namespace ThirdPerson
 {
     public class ThirdPerson : BasePlugin, IPluginConfig<Config>
     {
@@ -67,6 +67,8 @@ namespace ThirdPerson
             //Attacker
             var attacker = @event.Attacker;
 
+            if (attacker == null || victim == null) return HookResult.Continue;
+
             if (thirdPersonPool.ContainsKey(attacker) || smoothThirdPersonPool.ContainsKey(attacker))
             {
                 var isInfront = attacker.IsInfrontOfPlayer(victim);
@@ -82,7 +84,7 @@ namespace ThirdPerson
 
         public void OnTPCommand(CCSPlayerController? caller, CommandInfo command)
         {
-            if(Config.UseOnlyAdmin && !AdminManager.PlayerHasPermissions(caller, Config.Flag))
+            if (Config.UseOnlyAdmin && !AdminManager.PlayerHasPermissions(caller, Config.Flag))
             {
                 command.ReplyToCommand(ReplaceColorTags(Config.NoPermission));
                 return;
@@ -93,7 +95,7 @@ namespace ThirdPerson
             if (Config.UseSmooth)
             {
                 SmoothThirdPerson(caller);
-            } 
+            }
             else
             {
                 DefaultThirdPerson(caller);
@@ -157,7 +159,7 @@ namespace ThirdPerson
                         caller.GiveNamedItem(weapon);
                     }
                 }
-                    
+
             }
         }
 
@@ -229,8 +231,8 @@ namespace ThirdPerson
         public string ReplaceColorTags(string input)
         {
 
-        string[] colorPatterns =
-            {
+            string[] colorPatterns =
+                {
             "{DEFAULT}", "{DARKRED}", "{LIGHTPURPLE}", "{GREEN}", "{OLIVE}", "{LIME}", "{RED}", "{GREY}",
             "{YELLOW}", "{SILVER}", "{BLUE}", "{DARKBLUE}", "{ORANGE}", "{PURPLE}"
         };
