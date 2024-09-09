@@ -38,7 +38,7 @@ public static class EntityUtilities
     public static void UpdateCameraSmooth(this CPhysicsPropMultiplayer _cameraProp, CCSPlayerController target)
     {
         Vector velocity = CalculateVelocity(_cameraProp.AbsOrigin!, target.CalculatePositionInFront(-110, 90), ThirdPerson.cfg.SmoothDuration);
-        _cameraProp.Teleport(_cameraProp.AbsOrigin!, target.PlayerPawn.Value!.V_angle, velocity);
+        _cameraProp.Teleport(null, target.PlayerPawn.Value!.V_angle, velocity);
     }
 
     public static Vector CalculateVelocity(Vector positionA, Vector positionB, float timeDuration)
