@@ -1,4 +1,4 @@
-﻿using CounterStrikeSharp.API;
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Admin;
@@ -257,11 +257,11 @@ namespace ThirdPerson
     {
         [JsonPropertyName("OnActivated")] public string OnActivated { get; set; } = "Third Person Activated";
         [JsonPropertyName("OnDeactivated")] public string OnDeactivated { get; set; } = "Third Person Deactivated";
-        [JsonPropertyName("NoPermission")] public string NoPermission { get; set; } = "You dont have to access this command.";
-        [JsonPropertyName("Prefix")] public string Prefix { get; set; } = " [ {DARKRED}Third Person {DEFAULT}] ";
+        [JsonPropertyName("Prefix")] public string Prefix { get; set; } = " [{DARKRED}Third Person{DEFAULT}] ";
         [JsonPropertyName("UseOnlyAdmin")] public bool UseOnlyAdmin { get; set; } = false;
         [JsonPropertyName("OnlyAdminFlag")] public string Flag { get; set; } = "@css/slay";
-        [JsonPropertyName("UseSmoothCam")] public bool UseSmooth { get; set; } = false;
+        [JsonPropertyName("NoPermission")] public string NoPermission { get; set; } = "You dont have to access this command.";
+        [JsonPropertyName("UseSmoothCam")] public bool UseSmooth { get; set; } = true;
         [JsonPropertyName("SmoothCamDuration")] public float SmoothDuration { get; set; } = 0.01f;
         [JsonPropertyName("StripOnUse")] public bool StripOnUse { get; set; } = false;
     }
