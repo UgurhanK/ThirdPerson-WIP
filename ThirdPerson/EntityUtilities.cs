@@ -1,4 +1,4 @@
-﻿using CounterStrikeSharp.API;
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Admin;
@@ -12,6 +12,55 @@ namespace ThirdPerson;
 
 public static class EntityUtilities
 {
+    private const int SmoothCamBaseStepSize = 32;
+
+    // Update the angle step by step towards the target angle
+    public static QAngle MoveTowardsAngle(QAngle angle, QAngle targetAngle, float baseStepSize)
+    {
+        return new QAngle(
+            MoveTowards(angle.X, targetAngle.X, baseStepSize),
+            MoveTowards(angle.Y, targetAngle.Y, baseStepSize),
+            0
+        );
+    }
+
+    // Special handling for Yaw (and Pitch/Roll) to move in the shortest direction
+    private static float MoveTowards(float current, float target, float baseStepSize)
+    {
+        // Normalize angles to the range [-180, 180]
+        current = NormalizeAngle(current);
+        target = NormalizeAngle(target);
+
+        // Calculate the shortest direction to rotate
+        float delta = target - current;
+
+        // Ensure the shortest path is taken by adjusting delta
+        if (delta > 180)
+            delta -= 360;
+        else if (delta < -180)
+            delta += 360;
+
+        // Dynamically adjust the step size based on the magnitude of the delta
+        float dynamicStepSize = Math.Min(baseStepSize * Math.Abs(delta) / 180f, Math.Abs(delta));
+
+        // Clamp the delta to the dynamicStepSize
+        if (Math.Abs(delta) <= dynamicStepSize)
+        {
+            return target; // We have reached the target
+        }
+
+        // Move towards the target
+        return NormalizeAngle(current + Math.Sign(delta) * dynamicStepSize);
+    }
+
+    // Normalize any angle to the range [-180, 180]
+    private static float NormalizeAngle(float angle)
+    {
+        while (angle > 180) angle -= 360;
+        while (angle < -180) angle += 360;
+        return angle;
+    }
+
     static public void SetColor(this CDynamicProp? prop, Color colour)
     {
         if (prop != null && prop.IsValid)
@@ -38,7 +87,7 @@ public static class EntityUtilities
     public static void UpdateCameraSmooth(this CPhysicsPropMultiplayer _cameraProp, CCSPlayerController target)
     {
         Vector velocity = CalculateVelocity(_cameraProp.AbsOrigin!, target.CalculatePositionInFront(-110, 90), ThirdPerson.cfg.SmoothDuration);
-        _cameraProp.Teleport(null, target.PlayerPawn.Value!.V_angle, velocity);
+        _cameraProp.Teleport(null, MoveTowardsAngle(_cameraProp.AbsRotation!, target.PlayerPawn.Value!.V_angle, SmoothCamBaseStepSize), velocity);
     }
 
     public static Vector CalculateVelocity(Vector positionA, Vector positionB, float timeDuration)
