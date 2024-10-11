@@ -41,14 +41,14 @@ namespace ThirdPerson
 
         public void OnGameFrame()
         {
-            foreach (var player in thirdPersonPool.Keys)
+            foreach (var data in thirdPersonPool)
             {
-                thirdPersonPool[player].UpdateCamera(player);
+                data.Value.UpdateCamera(data.Key);
             }
 
-            foreach (var player in smoothThirdPersonPool.Keys)
+            foreach (var data in smoothThirdPersonPool)
             {
-                smoothThirdPersonPool[player].UpdateCameraSmooth(player);
+                data.Value.UpdateCameraSmooth(data.Key);
             }
         }
 
@@ -134,8 +134,9 @@ namespace ThirdPerson
 
                     foreach (var weapon in caller.PlayerPawn.Value!.WeaponServices!.MyWeapons)
                     {
-                        if (weapons.ContainsKey(caller) && weapons[caller].weapons.Contains(weapon.Value!.DesignerName)) continue;
-                        WeaponList.weapons.Add(weapon.Value!.DesignerName!);
+                        if (weapons.ContainsKey(caller)) continue;
+                        if (WeaponList.weapons.ContainsKey(weapon.Value!.DesignerName!)) WeaponList.weapons[weapon.Value!.DesignerName!]++;
+                        WeaponList.weapons.Add(weapon.Value!.DesignerName!, 1);
                     }
 
                     weapons.Add(caller, WeaponList);
@@ -156,10 +157,12 @@ namespace ThirdPerson
                 {
                     foreach (var weapon in weapons[caller].weapons)
                     {
-                        caller.GiveNamedItem(weapon);
+                        for (int i = 1; i <= weapon.Value; i++)
+                        {
+                            caller.GiveNamedItem(weapon.Key);
+                        }
                     }
                 }
-
             }
         }
 
@@ -200,8 +203,9 @@ namespace ThirdPerson
 
                     foreach (var weapon in caller.PlayerPawn.Value!.WeaponServices!.MyWeapons)
                     {
-                        if (weapons.ContainsKey(caller) && weapons[caller].weapons.Contains(weapon.Value!.DesignerName)) continue;
-                        WeaponList.weapons.Add(weapon.Value!.DesignerName!);
+                        if (weapons.ContainsKey(caller)) continue;
+                        if (WeaponList.weapons.ContainsKey(weapon.Value!.DesignerName!)) WeaponList.weapons[weapon.Value!.DesignerName!]++;
+                        WeaponList.weapons.Add(weapon.Value!.DesignerName!, 1);
                     }
 
                     weapons.Add(caller, WeaponList);
@@ -222,7 +226,10 @@ namespace ThirdPerson
                 {
                     foreach (var weapon in weapons[caller].weapons)
                     {
-                        caller.GiveNamedItem(weapon);
+                        for(int i = 1; i <= weapon.Value; i++)
+                        {
+                            caller.GiveNamedItem(weapon.Key);
+                        }
                     }
                 }
             }
@@ -250,7 +257,7 @@ namespace ThirdPerson
 
     public class WeaponList
     {
-        public List<string> weapons = new List<string>();
+        public Dictionary<string, int> weapons = new Dictionary<string, int>();
     }
 
     public class Config : BasePluginConfig
