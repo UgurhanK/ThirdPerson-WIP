@@ -43,11 +43,13 @@ namespace ThirdPerson
         {
             foreach (var data in thirdPersonPool)
             {
+                if (data.Key == null) continue;
                 data.Value.UpdateCamera(data.Key);
             }
 
             foreach (var data in smoothThirdPersonPool)
             {
+                if (data.Key == null) continue;
                 data.Value.UpdateCameraSmooth(data.Key);
             }
         }
